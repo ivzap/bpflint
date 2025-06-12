@@ -1,0 +1,65 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  # Build with only line information enabled to decrease compilation
+  # time and binary artifact sizes in CI, while still providing relevant
+  # data in backtraces. This option is assumed to only have marginal
+  # effects on the generated code, likely only in terms of section
+  # arrangement. See
+  # https://doc.rust-lang.org/rustc/codegen-options/index.html#debuginfo
+  RUSTFLAGS: '-C debuginfo=line-tables-only'
+
+jobs:
+  build:
+    name: Build [${{ matrix.rust }}, ${{ matrix.profile }}]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [stable]
+        profile: [dev, release]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ matrix.rust }}
+    - name: Build ${{ matrix.profile }}
+      run: cargo build --profile=${{ matrix.profile }} --all-targets --workspace
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Test
+      run: cargo test --workspace
+  clippy:
+    name: Lint with clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo clippy --no-deps --all-targets --workspace -- -A unknown_lints -D warnings
+  rustfmt:
+    name: Check code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - run: cargo +nightly fmt -- --check
+  cargo-doc:
+    name: Generate documentation
+    runs-on: ubuntu-latest
+    env:
+      RUSTDOCFLAGS: '-D warnings'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: cargo doc --no-deps

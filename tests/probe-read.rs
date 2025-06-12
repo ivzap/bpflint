@@ -1,0 +1,38 @@
+//! Tests for the `probe-read` lint.
+
+use std::path::Path;
+
+use bpflint::lint;
+use bpflint::report_terminal;
+
+
+#[test]
+fn basic() {
+    let code = r#"
+SEC("tp_btf/sched_switch")
+int handle__sched_switch(u64 *ctx)
+{
+    struct task_struct *prev = (struct task_struct *)ctx[1];
+    struct event event = {0};
+    bpf_probe_read(event.comm, TASK_COMM_LEN, prev->comm);
+    return 0;
+}
+"#;
+
+    let mut report = Vec::new();
+    let () = lint(code.as_bytes())
+        .unwrap()
+        .into_iter()
+        .try_for_each(|m| report_terminal(&m, code.as_bytes(), Path::new("<stdin>"), &mut report))
+        .unwrap();
+    let report = String::from_utf8(report).unwrap();
+
+    let expected = r#"warning: [probe-read] bpf_probe_read() is deprecated and replaced by bpf_probe_user() and bpf_probe_kernel(); refer to bpf-helpers(7)
+  --> <stdin>:6:4
+  | 
+6 |     bpf_probe_read(event.comm, TASK_COMM_LEN, prev->comm);
+  |     ^^^^^^^^^^^^^^
+  | 
+"#;
+    assert_eq!(report, expected);
+}
