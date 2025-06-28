@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>File Upload and Edit</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 20px;
+        }
+        #fileInput {
+          margin-bottom: 10px;
+        }
+        #fileContent {
+          width: 100%;
+          height: 400px;
+          margin-top: 10px;
+          font-family: monospace;
+          white-space: pre-wrap;
+          border: 1px solid #ccc;
+          padding: 10px;
+        }
+        .error {
+          color: red;
+          margin-top: 10px;
+        }
+      </style>
+  </head>
+  <body>
+    <h1>bpflint</h1>
+    <input type="file" id="fileInput" accept=".c,.h">
+    <textarea id="fileContent" readonly placeholder="Lint messages will appear here..."></textarea>
+    <div class="error" id="errorBox"></div>
+
+    <script type="module">
+      import init, { lint_html } from './pkg/bpflint.js';
+
+      await init('./pkg/bpflint_bg.wasm');
+      const fileInput = document.getElementById('fileInput');
+      const fileContent = document.getElementById('fileContent');
+
+      fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const result = lint_html(new Uint8Array(reader.result), file.name);
+            console.log(result);
+
+            if (result != "") {
+              fileContent.value = result;
+            } else {
+              fileContent.value = "No problems detected";
+            }
+            errorBox.textContent = '';
+          } catch (err) {
+            fileContent.value = '';
+            errorBox.textContent = 'Failed to lint: ' + err;
+          }
+        };
+
+        reader.onerror = () => {
+          fileContent.value = '';
+          errorBox.textContent = 'Error reading file: ' + reader.error;
+        };
+
+        reader.readAsArrayBuffer(file);
+      });
+    </script>
+  </body>
+</html>

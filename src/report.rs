@@ -32,7 +32,7 @@ pub fn report_terminal(
         range,
     } = r#match;
 
-    writeln!(writer, "warning: [{lint_name}] {message}",)?;
+    writeln!(writer, "warning: [{lint_name}] {message}")?;
     if range.start_point.row == range.end_point.row {
         let row = range.start_point.row;
         let col = range.start_point.column;
