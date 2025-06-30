@@ -40,28 +40,27 @@
       const fileInput = document.getElementById('fileInput');
       const fileContent = document.getElementById('fileContent');
 
+      function lint(code, file) {
+        try {
+          const result = lint_html(code, file);
+          if (result != "") {
+            fileContent.value = result;
+          } else {
+            fileContent.value = "No problems detected";
+          }
+          errorBox.textContent = '';
+        } catch (err) {
+          fileContent.value = '';
+          errorBox.textContent = 'Failed to lint: ' + err;
+        }
+      }
+
       fileInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const result = lint_html(new Uint8Array(reader.result), file.name);
-            console.log(result);
-
-            if (result != "") {
-              fileContent.value = result;
-            } else {
-              fileContent.value = "No problems detected";
-            }
-            errorBox.textContent = '';
-          } catch (err) {
-            fileContent.value = '';
-            errorBox.textContent = 'Failed to lint: ' + err;
-          }
-        };
-
+        reader.onload = () => lint(new Uint8Array(reader.result), file.name);
         reader.onerror = () => {
           fileContent.value = '';
           errorBox.textContent = 'Error reading file: ' + reader.error;
