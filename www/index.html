@@ -1,35 +1,52 @@
 <!DOCTYPE html>
 <html>
   <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>File Upload and Edit</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          padding: 20px;
-        }
-        #fileInput {
-          margin-bottom: 10px;
-        }
-        #fileContent {
-          width: 100%;
-          height: 400px;
-          margin-top: 10px;
-          font-family: monospace;
-          white-space: pre-wrap;
-          border: 1px solid #ccc;
-          padding: 10px;
-        }
-        .error {
-          color: red;
-          margin-top: 10px;
-        }
-      </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload and Edit</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #fileInput {
+        margin-bottom: 10px;
+      }
+      #fileContent {
+        width: 100%;
+        height: 400px;
+        margin-top: 10px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      .section {
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+    </style>
   </head>
   <body>
     <h1>bpflint</h1>
-    <input type="file" id="fileInput" accept=".c,.h">
+    A linter for BPF C kernel code. Select either a local file or enter
+    the URL of a remote one to retrieve and lint.<br /><br />
+
+    <div class="section">
+      <label>Local file:</label>
+      <input type="file" id="fileInput" accept=".c,.h">
+    </div>
+
+    <div class="section">
+      <label for="urlInput">Remote file:</label>
+      <input type="text" id="urlInput" value="https://raw.githubusercontent.com/d-e-s-o/bpflint/refs/heads/main/examples/task_longrun.bpf.c" style="width: 70%;">
+      <button id="fetchButton">Fetch</button>
+    </div>
+
     <textarea id="fileContent" readonly placeholder="Lint messages will appear here..."></textarea>
     <div class="error" id="errorBox"></div>
 
@@ -54,6 +71,21 @@
           errorBox.textContent = 'Failed to lint: ' + err;
         }
       }
+
+      fetchButton.addEventListener('click', async () => {
+        const url = urlInput.value.trim();
+        if (!url) return;
+
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+          const text = await response.text();
+          lint(new TextEncoder().encode(text), url);
+        } catch (err) {
+          fileContent.value = '';
+          errorBox.textContent = 'Error fetching file: ' + err.message;
+        }
+      })
 
       fileInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
