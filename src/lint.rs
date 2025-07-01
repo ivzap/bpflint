@@ -8,7 +8,7 @@ use tree_sitter::Query;
 use tree_sitter::QueryCursor;
 use tree_sitter::StreamingIterator as _;
 use tree_sitter::Tree;
-use tree_sitter_c::LANGUAGE;
+use tree_sitter_bpf_c::LANGUAGE;
 
 use crate::Point;
 use crate::Range;
