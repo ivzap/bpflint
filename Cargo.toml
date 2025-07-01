@@ -6,9 +6,23 @@ members = [
 
 [package]
 name = "bpflint"
-version = "0.0.0"
+version = "0.1.0"
+authors = ["Daniel Mueller <deso@posteo.net>"]
 edition = "2024"
 license = "MIT"
+repository = "https://github.com/d-e-s-o/bpflint"
+readme = "README.md"
+categories = [
+  "accessibility",
+  "command-line-utilities",
+  "compilers",
+  "development-tools",
+  "parser-implementations",
+]
+keywords = ["bpf", "linter", "lint", "cli"]
+description = """
+Linting functionality for BPF C programs.
+"""
 
 [lib]
 crate-type = ["cdylib", "rlib"]
