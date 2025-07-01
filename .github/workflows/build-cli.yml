@@ -1,4 +1,4 @@
-name: Build bpflint-cli
+name: Build bpflinter
 
 on:
   workflow_call:
@@ -28,12 +28,12 @@ jobs:
           CARGO_PROFILE_RELEASE_DEBUG=false CARGO_PROFILE_RELEASE_STRIP=true cargo install --path=cli --root=. --target ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
-          name: bpflint-cli-${{ matrix.target }}
-          path: bin/bpflint-cli
+          name: bpflinter-${{ matrix.target }}
+          path: bin/bpflinter
       - if: ${{ inputs.upload-release != '' }}
         name: Upload release asset
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mv bin/bpflint-cli bpflint-cli-${{ matrix.target }}
-          gh release upload ${{ inputs.upload-release }} bpflint-cli-${{ matrix.target }}
+          mv bin/bpflinter bpflinter-${{ matrix.target }}
+          gh release upload ${{ inputs.upload-release }} bpflinter-${{ matrix.target }}

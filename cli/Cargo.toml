@@ -1,8 +1,20 @@
 [package]
-name = "bpflint-cli"
-version = "0.0.0"
+name = "bpflinter"
+version = "0.1.0"
 edition = "2024"
 license = "MIT"
+repository = "https://github.com/d-e-s-o/bpflint"
+categories = [
+  "accessibility",
+  "command-line-utilities",
+  "compilers",
+  "development-tools",
+  "parser-implementations",
+]
+keywords = ["bpf", "linter", "lint", "cli"]
+description = """
+A command-line based linter for BPF C code.
+"""
 
 [build-dependencies]
 anyhow = "1.0"

@@ -1,4 +1,4 @@
-//! Build script for `bpflint-cli`.
+//! Build script for `bpflinter`.
 
 use std::env;
 
