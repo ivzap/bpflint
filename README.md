@@ -32,6 +32,8 @@ program.
 **A:** We have a list of [issues](https://github.com/d-e-s-o/bpflint/issues)
        with ideas for contributions, which mark a good starting point.
        For documentation on lints specifically and how to add a new one,
-       please check out the [lints/](lints/) sub-directory.
+       please check out the [lints/](lints/) sub-directory. All other
+       questions are probably best asked in one of the existing issues
+       (or a new one).
 
 [docs-rs]: https://docs.rs/bpflint/latest
