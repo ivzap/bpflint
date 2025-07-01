@@ -7,10 +7,29 @@ mod redefine;
 mod lint;
 mod report;
 
-// TODO: Perhaps it's better to re-implement these types to decouple us
-//       from `tree-sitter` and to have more control over details.
-pub use tree_sitter::Point;
-pub use tree_sitter::Range;
+use std::ops;
+
+
+/// A position in a multi-line text document, in terms of rows and columns.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct Point {
+    /// A row number in source code (zero-based).
+    pub row: usize,
+    /// A column number in source code (zero-based).
+    pub col: usize,
+}
+
+/// A range of positions in a multi-line text document, both in terms of bytes
+/// and of rows and columns.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Range {
+    /// The byte range in the source code.
+    pub bytes: ops::Range<usize>,
+    /// The logical start point of the represented range.
+    pub start_point: Point,
+    /// The logical end point of the represented range.
+    pub end_point: Point,
+}
 
 pub use crate::lint::LintMatch;
 pub use crate::lint::lint;

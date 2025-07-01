@@ -10,6 +10,7 @@ use tree_sitter::StreamingIterator as _;
 use tree_sitter::Tree;
 use tree_sitter_c::LANGUAGE;
 
+use crate::Point;
 use crate::Range;
 
 
@@ -17,6 +18,28 @@ mod lints {
     include!(concat!(env!("OUT_DIR"), "/lints.rs"));
 }
 
+impl From<tree_sitter::Point> for Point {
+    fn from(other: tree_sitter::Point) -> Self {
+        let tree_sitter::Point { row, column } = other;
+        Self { row, col: column }
+    }
+}
+
+impl From<tree_sitter::Range> for Range {
+    fn from(other: tree_sitter::Range) -> Self {
+        let tree_sitter::Range {
+            start_byte,
+            end_byte,
+            start_point,
+            end_point,
+        } = other;
+        Self {
+            bytes: start_byte..end_byte,
+            start_point: Point::from(start_point),
+            end_point: Point::from(end_point),
+        }
+    }
+}
 
 /// Details about a linter match.
 #[derive(Clone, Debug)]
@@ -51,7 +74,7 @@ fn lint_impl(tree: &Tree, code: &[u8], lint_src: &str, lint_name: &str) -> Resul
                     .as_ref()
                     .context("`message` property has no value set")?
                     .to_string(),
-                range: capture.node.range(),
+                range: Range::from(capture.node.range()),
             };
             let () = results.push(r#match);
         }
@@ -118,8 +141,8 @@ int handle__sched_switch(u64 *ctx)
             message.starts_with("bpf_probe_read() is deprecated"),
             "{message}"
         );
-        assert_eq!(&code[range.start_byte..range.end_byte], "bpf_probe_read");
-        assert_eq!(range.start_point, Point { row: 6, column: 4 });
-        assert_eq!(range.end_point, Point { row: 6, column: 18 });
+        assert_eq!(&code[range.bytes.clone()], "bpf_probe_read");
+        assert_eq!(range.start_point, Point { row: 6, col: 4 });
+        assert_eq!(range.end_point, Point { row: 6, col: 18 });
     }
 }

@@ -43,21 +43,21 @@ pub fn report_terminal(
     writeln!(writer, "warning: [{lint_name}] {message}")?;
     if range.start_point.row == range.end_point.row {
         let row = range.start_point.row;
-        let col = range.start_point.column;
+        let col = range.start_point.col;
         writeln!(writer, "  --> {}:{row}:{col}", path.display())?;
         let row_str = row.to_string();
         let lprefix = format!("{row} | ");
         let prefix = format!("{:width$} | ", "", width = row_str.len());
         writeln!(writer, "{prefix}")?;
-        let line_start = code[..range.start_byte]
+        let line_start = code[..range.bytes.end]
             .iter()
             .rposition(|&b| b == b'\n')
             .map(|idx| idx + 1)
-            .unwrap_or(range.start_byte);
+            .unwrap_or(range.bytes.start);
         // TODO: `end_byte` seems to be exclusive, meaning we may end up
         //       panicking here.
-        let line_end = range.end_byte
-            + code[range.end_byte..]
+        let line_end = range.bytes.end
+            + code[range.bytes.end..]
                 .iter()
                 .position(|&b| b == b'\n')
                 .unwrap_or(0);
@@ -68,11 +68,8 @@ pub fn report_terminal(
             "{prefix}{:indent$}{:^<width$}",
             "",
             "",
-            indent = range.start_point.column,
-            width = range
-                .end_point
-                .column
-                .saturating_sub(range.start_point.column)
+            indent = range.start_point.col,
+            width = range.end_point.col.saturating_sub(range.start_point.col)
         )?;
         writeln!(writer, "{prefix}")?;
     } else {
@@ -109,10 +106,9 @@ int handle__sched_switch(u64 *ctx)
             lint_name: "probe-read".to_string(),
             message: "bpf_probe_read() is deprecated".to_string(),
             range: Range {
-                start_byte: 160,
-                end_byte: 174,
-                start_point: Point { row: 6, column: 4 },
-                end_point: Point { row: 6, column: 18 },
+                bytes: 160..174,
+                start_point: Point { row: 6, col: 4 },
+                end_point: Point { row: 6, col: 18 },
             },
         };
         let mut report = Vec::new();
