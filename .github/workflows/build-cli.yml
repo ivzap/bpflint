@@ -1,6 +1,13 @@
 name: Build bpflint-cli
 
 on:
+  workflow_call:
+    inputs:
+      upload-release:
+        description: 'The release to upload artifacts to, if any'
+        default: ''
+        required: false
+        type: string
   workflow_dispatch:
 
 jobs:
@@ -23,3 +30,10 @@ jobs:
         with:
           name: bpflint-cli-${{ matrix.target }}
           path: bin/bpflint-cli
+      - if: ${{ inputs.upload-release != '' }}
+        name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mv bin/bpflint-cli bpflint-cli-${{ matrix.target }}
+          gh release upload ${{ inputs.upload-release }} bpflint-cli-${{ matrix.target }}
