@@ -65,7 +65,8 @@ fn lint_impl(tree: &Tree, code: &[u8], lint_src: &str, lint_name: &str) -> Resul
 
 /// Lint code using the default set of lints.
 ///
-/// - `code` is the source code in question
+/// - `code` is the source code in question, for example as read from a
+///   file
 pub fn lint(code: &[u8]) -> Result<Vec<LintMatch>> {
     let mut parser = Parser::new();
     let () = parser
