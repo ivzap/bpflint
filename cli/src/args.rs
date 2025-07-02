@@ -9,6 +9,7 @@ use clap::Parser;
 #[command(version = env!("VERSION"))]
 pub struct Args {
     /// The BPF C source files to lint.
+    #[arg(required = true)]
     pub srcs: Vec<PathBuf>,
     /// Increase verbosity (can be supplied multiple times).
     #[arg(short = 'v', long = "verbose", global = true, action = ArgAction::Count)]
