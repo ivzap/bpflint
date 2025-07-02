@@ -6,6 +6,7 @@ bpflint
 =======
 
 - [Library documentation][docs-rs]
+- [Library changelog](CHANGELOG.md)
 
 Linting functionality for BPF C kernel programs. The Linux kernel's BPF
 sub-system is continuously being improved and certain patterns

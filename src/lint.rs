@@ -41,7 +41,28 @@ impl From<tree_sitter::Range> for Range {
     }
 }
 
-/// Details about a linter match.
+
+/// Meta data about a lint.
+#[derive(Clone, Debug)]
+pub struct LintMeta {
+    /// The lint's name.
+    pub name: String,
+    /// The struct is non-exhaustive and open to extension.
+    #[doc(hidden)]
+    pub _non_exhaustive: (),
+}
+
+
+/// Retrieve the list of lints shipped with the library.
+pub fn builtin_lints() -> impl ExactSizeIterator<Item = LintMeta> + DoubleEndedIterator {
+    lints::LINTS.iter().map(|(name, _code)| LintMeta {
+        name: name.to_string(),
+        _non_exhaustive: (),
+    })
+}
+
+
+/// Details about a lint match.
 #[derive(Clone, Debug)]
 pub struct LintMatch {
     /// The name of the lint that matched.
@@ -113,6 +134,13 @@ mod tests {
 
     use crate::Point;
 
+
+    /// Check that the `builtin_lints()` function reports sensible
+    /// results.
+    #[test]
+    fn built_in_lint_listing() {
+        assert!(builtin_lints().any(|lint| lint.name == "probe-read"));
+    }
 
     /// Check that some basic linting works as expected.
     #[test]
