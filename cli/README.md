@@ -1,6 +1,8 @@
 bpflinter
 =========
 
+- [Changelog](CHANGELOG.md)
+
 **bpflinter** is a command line based linter for BPF C code. It is
 powered by the [**bpflint**][bpflint] library.
 

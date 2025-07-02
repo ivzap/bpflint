@@ -5,11 +5,11 @@ mod args;
 use std::env::var_os;
 use std::fs::read;
 use std::io;
+use std::io::Write as _;
 
 use anyhow::Context as _;
 use anyhow::Result;
 
-use bpflint::report_terminal;
 use clap::Parser as _;
 
 use tracing::Level;
@@ -18,12 +18,19 @@ use tracing_subscriber::FmtSubscriber;
 use tracing_subscriber::filter::EnvFilter;
 use tracing_subscriber::fmt::time::ChronoLocal;
 
+use bpflint::builtin_lints;
 use bpflint::lint;
+use bpflint::report_terminal;
 
 
 fn main() -> Result<()> {
-    let args = args::Args::parse();
-    let level = match args.verbosity {
+    let args::Args {
+        srcs,
+        print_lints,
+        verbosity,
+    } = args::Args::parse();
+
+    let level = match verbosity {
         0 => Level::WARN,
         1 => Level::INFO,
         2 => Level::DEBUG,
@@ -50,13 +57,19 @@ fn main() -> Result<()> {
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
 
-    for src_path in args.srcs {
-        let code =
-            read(&src_path).with_context(|| format!("failed to read `{}`", src_path.display()))?;
-        let matches =
-            lint(&code).with_context(|| format!("failed to lint `{}`", src_path.display()))?;
-        for m in matches {
-            let () = report_terminal(&m, &code, &src_path, &mut stdout)?;
+    if print_lints {
+        for lint in builtin_lints() {
+            write!(&mut stdout, "{}", lint.name)?;
+        }
+    } else {
+        for src_path in srcs {
+            let code = read(&src_path)
+                .with_context(|| format!("failed to read `{}`", src_path.display()))?;
+            let matches =
+                lint(&code).with_context(|| format!("failed to lint `{}`", src_path.display()))?;
+            for m in matches {
+                let () = report_terminal(&m, &code, &src_path, &mut stdout)?;
+            }
         }
     }
     Ok(())
