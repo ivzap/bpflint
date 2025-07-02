@@ -12,6 +12,7 @@ edition = "2024"
 license = "MIT"
 repository = "https://github.com/d-e-s-o/bpflint"
 readme = "README.md"
+documentation = "https://docs.rs/bpflint"
 categories = [
   "accessibility",
   "command-line-utilities",
