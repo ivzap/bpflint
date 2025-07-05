@@ -12,7 +12,7 @@ use crate::LintMatch;
 ///
 /// - `match` is the match to create a report for
 /// - `code` is the source code in question, as passed to
-///   [`lint`][crate::lint]
+///   [`lint`][crate::lint()]
 /// - `path` should be the path to the file to which `code` corresponds
 ///   and is used to enhance the generated report
 /// - `writer` is a reference to a [`io::Write`] to which to write the
