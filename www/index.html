@@ -22,8 +22,21 @@
         padding: 10px;
       }
       .section {
-        margin-top: 10px;
-        margin-bottom: 10px;
+        display: grid;
+        grid-template-columns: 120px minmax(10em, 80em) 7em;
+        gap: 1em;
+        align-items: center;
+        margin-bottom: 1.5em;
+      }
+      .section label {
+        font-weight: bold;
+      }
+      .section input[type="text"] {
+        padding: 0.4em;
+        font-family: monospace;
+      }
+      .section button {
+        padding: 0.4em 1em;
       }
       .error {
         color: red;
@@ -37,13 +50,13 @@
     the URL of a remote one to retrieve and lint.<br /><br />
 
     <div class="section">
-      <label>Local file:</label>
-      <input type="file" id="fileInput" accept=".c,.h">
-    </div>
+      <label for="filePath">Local file:</label>
+      <input type="text" id="filePath" placeholder="No file selected..." readonly />
+      <input type="file" id="fileInput" accept=".c,.cc,.cpp,.cxx,.h,.hpp" style="display: none" />
+      <button id="selectFileButton">Select</button>
 
-    <div class="section">
       <label for="urlInput">Remote file:</label>
-      <input type="text" id="urlInput" value="https://raw.githubusercontent.com/d-e-s-o/bpflint/refs/heads/main/examples/task_longrun.bpf.c" style="width: 70%;">
+      <input type="text" id="urlInput" value="https://raw.githubusercontent.com/d-e-s-o/bpflint/refs/heads/main/examples/task_longrun.bpf.c" />
       <button id="fetchButton">Fetch</button>
     </div>
 
@@ -55,7 +68,13 @@
 
       await init('./pkg/bpflint_bg.wasm');
       const fileInput = document.getElementById('fileInput');
+      const filePath = document.getElementById('filePath');
       const lintMessages = document.getElementById('lintMessages');
+      const selectFileButton = document.getElementById('selectFileButton');
+
+      selectFileButton.addEventListener('click', () => {
+        fileInput.click();
+      });
 
       function lint(code, file) {
         try {
@@ -90,6 +109,10 @@
       fileInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (!file) return;
+
+        filePath.value = file.name;
+        // Reset value to trigger `change` event on subsequent selection.
+        fileInput.value = '';
 
         const reader = new FileReader();
         reader.onload = () => lint(new Uint8Array(reader.result), file.name);
