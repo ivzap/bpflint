@@ -86,14 +86,14 @@ fn lint_impl(tree: &Tree, code: &[u8], lint_src: &str, lint_name: &str) -> Resul
             let setting = settings
                 .iter()
                 .find(|prop| &*prop.key == "message")
-                .context("failed to find `message` property")?;
+                .with_context(|| format!("{lint_name}: failed to find `message` property"))?;
 
             let r#match = LintMatch {
                 lint_name: lint_name.to_string(),
                 message: setting
                     .value
                     .as_ref()
-                    .context("`message` property has no value set")?
+                    .with_context(|| format!("{lint_name}: `message` property has no value set"))?
                     .to_string(),
                 range: Range::from(capture.node.range()),
             };
@@ -107,11 +107,7 @@ fn lint_impl(tree: &Tree, code: &[u8], lint_src: &str, lint_name: &str) -> Resul
     Ok(results)
 }
 
-/// Lint code using the default set of lints.
-///
-/// - `code` is the source code in question, for example as read from a
-///   file
-pub fn lint(code: &[u8]) -> Result<Vec<LintMatch>> {
+fn lint_multi(code: &[u8], lints: &[(&str, &str)]) -> Result<Vec<LintMatch>> {
     let mut parser = Parser::new();
     let () = parser
         .set_language(&LANGUAGE.into())
@@ -120,11 +116,19 @@ pub fn lint(code: &[u8]) -> Result<Vec<LintMatch>> {
         .parse(code, None)
         .context("failed to provided source code")?;
     let mut results = Vec::new();
-    for (lint_name, lint_src) in lints::LINTS {
+    for (lint_name, lint_src) in lints {
         let matches = lint_impl(&tree, code, lint_src, lint_name)?;
         let () = results.extend(matches);
     }
     Ok(results)
+}
+
+/// Lint code using the default set of lints.
+///
+/// - `code` is the source code in question, for example as read from a
+///   file
+pub fn lint(code: &[u8]) -> Result<Vec<LintMatch>> {
+    lint_multi(code, &lints::LINTS)
 }
 
 
@@ -140,6 +144,26 @@ mod tests {
     #[test]
     fn built_in_lint_listing() {
         assert!(builtin_lints().any(|lint| lint.name == "probe-read"));
+    }
+
+    /// Check that a missing `message` property is being flagged
+    /// appropriately.
+    #[test]
+    fn missing_message_property() {
+        let code = r#"
+test_fn(/* doesn't matter */);
+"#;
+        let lint = r#"
+(call_expression
+    function: (identifier) @function (#eq? @function "test_fn")
+)
+        "#;
+        let err = lint_multi(code.as_bytes(), &[("test_fn", lint)]).unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "test_fn: failed to find `message` property",
+            "{err}"
+        );
     }
 
     /// Check that some basic linting works as expected.
