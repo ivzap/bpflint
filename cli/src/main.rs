@@ -59,7 +59,7 @@ fn main() -> Result<()> {
 
     if print_lints {
         for lint in builtin_lints() {
-            write!(&mut stdout, "{}", lint.name)?;
+            writeln!(&mut stdout, "{}", lint.name)?;
         }
     } else {
         for src_path in srcs {
