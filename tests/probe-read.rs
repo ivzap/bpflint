@@ -5,6 +5,8 @@ use std::path::Path;
 use bpflint::lint;
 use bpflint::report_terminal;
 
+use pretty_assertions::assert_eq;
+
 
 #[test]
 fn basic() {

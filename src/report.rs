@@ -84,6 +84,8 @@ pub fn report_terminal(
 mod tests {
     use super::*;
 
+    use pretty_assertions::assert_eq;
+
     use crate::Point;
     use crate::Range;
 
