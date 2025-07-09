@@ -53,7 +53,7 @@ pub fn report_terminal(
             .iter()
             .rposition(|&b| b == b'\n')
             .map(|idx| idx + 1)
-            .unwrap_or(range.bytes.start);
+            .unwrap_or(0);
         // TODO: `end_byte` seems to be exclusive, meaning we may end up
         //       panicking here.
         let line_end = range.bytes.end
@@ -121,6 +121,38 @@ int handle__sched_switch(u64 *ctx)
   | 
 6 |     bpf_probe_read(event.comm, TASK_COMM_LEN, prev->comm);
   |     ^^^^^^^^^^^^^^
+  | 
+"#;
+        assert_eq!(report, expected);
+    }
+
+    /// Check that reporting works properly when the match is on the
+    /// very first line of input.
+    #[test]
+    fn report_top_most_line() {
+        let code = r#"SEC("kprobe/test")
+int handle__test(void)
+{
+}
+"#;
+
+        let m = LintMatch {
+            lint_name: "unstable-attach-point".to_string(),
+            message: "kprobe/kretprobe/fentry/fexit are unstable".to_string(),
+            range: Range {
+                bytes: 4..17,
+                start_point: Point { row: 0, col: 4 },
+                end_point: Point { row: 0, col: 17 },
+            },
+        };
+        let mut report = Vec::new();
+        let () = report_terminal(&m, code.as_bytes(), Path::new("<stdin>"), &mut report).unwrap();
+        let report = String::from_utf8(report).unwrap();
+        let expected = r#"warning: [unstable-attach-point] kprobe/kretprobe/fentry/fexit are unstable
+  --> <stdin>:0:4
+  | 
+0 | SEC("kprobe/test")
+  |     ^^^^^^^^^^^^^
   | 
 "#;
         assert_eq!(report, expected);
