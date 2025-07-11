@@ -13,12 +13,7 @@ use anyhow::Error;
 use anyhow::Result;
 #[cfg(feature = "deploy")]
 use anyhow::anyhow;
-use anyhow::ensure;
 
-
-fn is_alphanumeric_minus(s: &str) -> bool {
-    s.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
-}
 
 fn generate_lints(manifest_dir: &Path) -> Result<()> {
     let out_dir =
@@ -51,13 +46,6 @@ fn generate_lints(manifest_dir: &Path) -> Result<()> {
             )
         })?;
         let lint_name = lint_name.trim_end_matches(".scm");
-        // TODO: Should probably do some more sanity checking here.
-        //       E.g., no `-` at start/end.
-        ensure!(
-            is_alphanumeric_minus(lint_name),
-            "lint name `{lint_name}` contains unsupported characters"
-        );
-
         let lint_name_upper = lint_name.to_ascii_uppercase().replace('-', "_");
         let lint_var = format!("LINT_{lint_name_upper}_SRC");
         writeln!(

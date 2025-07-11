@@ -32,6 +32,7 @@ pub struct Range {
 }
 
 pub use crate::lint::LintMatch;
+pub use crate::lint::LintMeta;
 pub use crate::lint::builtin_lints;
 pub use crate::lint::lint;
 pub use crate::report::report_terminal;

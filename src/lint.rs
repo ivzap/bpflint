@@ -139,13 +139,6 @@ mod tests {
     use crate::Point;
 
 
-    /// Check that the `builtin_lints()` function reports sensible
-    /// results.
-    #[test]
-    fn built_in_lint_listing() {
-        assert!(builtin_lints().any(|lint| lint.name == "probe-read"));
-    }
-
     /// Check that a missing `message` property is being flagged
     /// appropriately.
     #[test]
@@ -164,6 +157,26 @@ test_fn(/* doesn't matter */);
             "test_fn: failed to find `message` property",
             "{err}"
         );
+    }
+
+    /// Check that `tree-sitter` queries represented by built-in lints
+    /// exhibit the expected set of properties.
+    #[test]
+    fn validate_lint_queries() {
+        for (name, code) in lints::LINTS {
+            let query = Query::new(&LANGUAGE.into(), code).unwrap();
+            assert_eq!(
+                query.pattern_count(),
+                1,
+                "lint `{name}` has too many pattern matches: only single one is supported currently"
+            );
+
+            let settings = query.property_settings(0);
+            assert!(
+                settings.iter().any(|prop| &*prop.key == "message"),
+                "`message` property is missing for lint `{name}`"
+            );
+        }
     }
 
     /// Check that some basic linting works as expected.

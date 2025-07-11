@@ -1,4 +1,9 @@
-//! Tests for individual lints.
+//! Tests for lints.
+
+// Basic lint validation.
+mod validate;
+
+// Tests for individual lints go below here.
 
 #[path = "probe-read.rs"]
 mod probe_read;
