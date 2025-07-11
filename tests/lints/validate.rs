@@ -83,3 +83,23 @@ fn builtin_lint_names() {
         );
     }
 }
+
+
+/// Make sure that each lint has a test module associated with it.
+#[test]
+fn lint_test_assurance() {
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let lint_test_dir = manifest_dir.join("tests").join("lints");
+
+    for LintMeta { name, .. } in builtin_lints() {
+        // Check that a test exists. It could still not be wired up, but
+        // it's better than nothing.
+        assert!(
+            lint_test_dir
+                .join(format!("{name}.rs"))
+                .try_exists()
+                .unwrap(),
+            "tests for lint {name} are missing; please add to tests/lints/"
+        )
+    }
+}
