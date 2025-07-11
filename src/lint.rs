@@ -120,10 +120,25 @@ fn lint_multi(code: &[u8], lints: &[(&str, &str)]) -> Result<Vec<LintMatch>> {
         let matches = lint_impl(&tree, code, lint_src, lint_name)?;
         let () = results.extend(matches);
     }
+
+    // Sort results to ensure more consistent reporting with ascending
+    // lines.
+    let () = results.sort_by(|match1, match2| {
+        // NB: We use an ad-hoc comparison rather than a proper
+        // `PartialOrd` impl for `Range`, because the latter is a bit
+        // harder to do correctly.
+        match1
+            .range
+            .start_point
+            .cmp(&match2.range.start_point)
+            .then_with(|| match1.range.end_point.cmp(&match2.range.end_point))
+    });
     Ok(results)
 }
 
 /// Lint code using the default set of lints.
+///
+/// Matches are reported in source code order.
 ///
 /// - `code` is the source code in question, for example as read from a
 ///   file
@@ -209,5 +224,30 @@ int handle__sched_switch(u64 *ctx)
         assert_eq!(&code[range.bytes.clone()], "bpf_probe_read");
         assert_eq!(range.start_point, Point { row: 6, col: 4 });
         assert_eq!(range.end_point, Point { row: 6, col: 18 });
+    }
+
+    /// Check that reported matches are sorted by line number.
+    #[test]
+    fn sorted_match_reporting() {
+        let lint1 = r#"
+(call_expression
+    function: (identifier) @function (#eq? @function "foo")
+    (#set! "message" "foo")
+)
+        "#;
+        let lint2 = r#"
+(call_expression
+    function: (identifier) @function (#eq? @function "bar")
+    (#set! "message" "bar")
+)
+        "#;
+        let code = r#"
+bar();
+foo();
+"#;
+        let matches = lint_multi(code.as_bytes(), &[("foo", lint1), ("bar", lint2)]).unwrap();
+        assert_eq!(matches.len(), 2);
+        assert_eq!(matches[0].lint_name, "bar");
+        assert_eq!(matches[1].lint_name, "foo");
     }
 }
