@@ -62,7 +62,7 @@ fn main() -> Result<()> {
             writeln!(&mut stdout, "{}", lint.name)?;
         }
     } else {
-        for src_path in srcs {
+        for src_path in srcs.into_iter().flatten() {
             let code = read(&src_path)
                 .with_context(|| format!("failed to read `{}`", src_path.display()))?;
             let matches =

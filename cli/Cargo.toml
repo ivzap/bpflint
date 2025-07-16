@@ -28,5 +28,8 @@ clap = { version = "4.5", features = ["derive"] }
 tracing = { version = "0.1", default-features = false, features = ["std"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi", "chrono", "env-filter", "fmt"] }
 
+[dev-dependencies]
+tempfile = { version = "3", default-features = false }
+
 [lints]
 workspace = true
