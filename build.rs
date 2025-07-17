@@ -4,6 +4,7 @@ use std::env;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::fs::read_dir;
+use std::fs::read_to_string;
 use std::io::Write as _;
 use std::path::Path;
 use std::path::PathBuf;
@@ -38,6 +39,8 @@ fn generate_lints(manifest_dir: &Path) -> Result<()> {
             continue
         }
 
+        let lint_src = read_to_string(&lint_path)
+            .with_context(|| format!("failed to read lint `{}`", lint_path.display()))?;
         let lint_name = entry.file_name();
         let lint_name = lint_name.to_str().with_context(|| {
             format!(
@@ -50,9 +53,7 @@ fn generate_lints(manifest_dir: &Path) -> Result<()> {
         let lint_var = format!("LINT_{lint_name_upper}_SRC");
         writeln!(
             &mut lints_rs_file,
-            r#"pub static {lint_var}: (&str, &str) = ("{}", include_str!("{}"));"#,
-            lint_name,
-            lint_path.display(),
+            r####"pub static {lint_var}: (&str, &str) = (r###"{lint_name}"###, r###"{lint_src}"###);"####
         )?;
         let () = lint_vars.push(lint_var);
     }

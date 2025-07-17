@@ -1,3 +1,9 @@
+Unreleased
+----------
+- Embed lint source code directly into build-time generated `lint.rs`
+  module
+
+
 0.1.1
 -----
 - Added `unsable-attach-point` lint
