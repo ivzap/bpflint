@@ -36,8 +36,8 @@ fn parse_files(s: &str) -> Result<Vec<PathBuf>> {
 pub struct Args {
     /// The BPF C source files to lint.
     ///
-    /// Use `@file` syntax to include a file list contained in `<file>`.
-    #[arg(required = true, value_parser = parse_files)]
+    /// Use '@file' syntax to include a file list contained in 'file'.
+    #[arg(required = true, value_name = "[@]SRCS", value_parser = parse_files)]
     pub srcs: Vec<Vec<PathBuf>>,
     /// Print a list of available lints.
     #[arg(long, exclusive = true)]
