@@ -6,6 +6,7 @@ use anyhow::Result;
 use tracing::warn;
 
 use crate::LintMatch;
+use crate::lines::Lines;
 
 
 /// Report a lint match in terminal style.
@@ -52,22 +53,10 @@ pub fn report_terminal(
             writeln!(writer, "{prefix}")?;
             // SANITY: It would be a tree-sitter bug the range does not
             //         map to a valid code location.
-            let line_start = code[..range.bytes.start]
-                .iter()
-                .rposition(|&b| b == b'\n')
-                .map(|idx| idx + 1)
-                .unwrap_or(0);
-            // SANITY: It would be a tree-sitter bug the range does not
-            //         map to a valid code location.
-            let line_end = range.bytes.end
-                + code[range.bytes.end..]
-                    .iter()
-                    .position(|&b| b == b'\n')
-                    .unwrap_or(0);
-            // SANITY: Both `line_start` and `line_end` will always be
-            //         in-bounds of `code`, because we searched for them
-            //         in there.
-            let line = &code[line_start..line_end];
+            let mut lines = Lines::new(code, range.bytes.start);
+            // SANITY: `Lines` will always report at least a single
+            //          line.
+            let line = lines.next().unwrap();
             writeln!(writer, "{lprefix}{}", String::from_utf8_lossy(line))?;
             writeln!(
                 writer,
