@@ -42,32 +42,35 @@ pub fn report_terminal(
     } = r#match;
 
     writeln!(writer, "warning: [{lint_name}] {message}")?;
+    let row = range.start_point.row;
+    let col = range.start_point.col;
+    writeln!(writer, "  --> {}:{row}:{col}", path.display())?;
+
+    if range.bytes.is_empty() {
+        return Ok(())
+    }
+
     if range.start_point.row == range.end_point.row {
-        let row = range.start_point.row;
-        let col = range.start_point.col;
-        writeln!(writer, "  --> {}:{row}:{col}", path.display())?;
-        if !range.bytes.is_empty() {
-            let row_str = row.to_string();
-            let lprefix = format!("{row} | ");
-            let prefix = format!("{:width$} | ", "", width = row_str.len());
-            writeln!(writer, "{prefix}")?;
-            // SANITY: It would be a tree-sitter bug the range does not
-            //         map to a valid code location.
-            let mut lines = Lines::new(code, range.bytes.start);
-            // SANITY: `Lines` will always report at least a single
-            //          line.
-            let line = lines.next().unwrap();
-            writeln!(writer, "{lprefix}{}", String::from_utf8_lossy(line))?;
-            writeln!(
-                writer,
-                "{prefix}{:indent$}{:^<width$}",
-                "",
-                "",
-                indent = range.start_point.col,
-                width = range.end_point.col.saturating_sub(range.start_point.col)
-            )?;
-            writeln!(writer, "{prefix}")?;
-        }
+        let row_str = row.to_string();
+        let lprefix = format!("{row} | ");
+        let prefix = format!("{:width$} | ", "", width = row_str.len());
+        writeln!(writer, "{prefix}")?;
+        // SANITY: It would be a tree-sitter bug the range does not
+        //         map to a valid code location.
+        let mut lines = Lines::new(code, range.bytes.start);
+        // SANITY: `Lines` will always report at least a single
+        //          line.
+        let line = lines.next().unwrap();
+        writeln!(writer, "{lprefix}{}", String::from_utf8_lossy(line))?;
+        writeln!(
+            writer,
+            "{prefix}{:indent$}{:^<width$}",
+            "",
+            "",
+            indent = range.start_point.col,
+            width = range.end_point.col.saturating_sub(range.start_point.col)
+        )?;
+        writeln!(writer, "{prefix}")?;
     } else {
         // TODO: Implement.
         warn!("multi-line reporting is not yet supported");
